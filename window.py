@@ -15,12 +15,21 @@ def load_image():
         imageHelper = ImageHelper(image_name)
         image = imageHelper.get_photo_image()
         set_image(image)
+        cropscaleX.configure(from_=0, to=imageHelper.width)
+        cropscaleX.configure(from_=0, to=imageHelper.height)
 
 
 # Rotate the image left
-def rotate_left():
+def transpose():
     if imageHelper:
-        imageHelper.rotate_left()
+        imageHelper.transpose()
+        image = imageHelper.get_photo_image()
+        set_image(image)
+
+
+def vertically_flip():
+    if imageHelper:
+        imageHelper.vertically_flip()
         image = imageHelper.get_photo_image()
         set_image(image)
 
@@ -35,18 +44,30 @@ window = tk.Tk()
 screen_size = window.winfo_screenwidth(), window.winfo_screenheight()
 # Set the geometry of the screen. 100 pixels less from actual size of the screen
 window.geometry(str(screen_size[0] - 200) + "x" + str(screen_size[0] - 200))
+
 # Frame on the top. This will be used to shw buttons.
 topFrame = tk.Frame(window)
 topFrame.pack()
 # Frame on bottom. This will be used to show the loaded image.
 bottomFrame = tk.Frame(window)
-bottomFrame.pack()
+# bottomFrame.pack(side=tk.BOTTOM)
+bottomFrame.pack(side=tk.BOTTOM)
+
 # add load button
 loadButton = tk.Button(topFrame, text="Load Image", command=load_image)
 loadButton.pack(side=tk.LEFT)
 # add rotate button
-rotateButton = tk.Button(topFrame, text="Rotate Left", command=rotate_left)
+rotateButton = tk.Button(topFrame, text="Transpose", command=transpose)
 rotateButton.pack(side=tk.LEFT)
+# Add Vertical Flip button
+verticalFlipButton = tk.Button(topFrame, text="Vertical Flip", command=vertically_flip)
+verticalFlipButton.pack(side=tk.LEFT)
+
+cropscaleX = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="X")
+cropscaleX.pack(side=tk.LEFT)
+cropscaleY = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="Y")
+cropscaleY.pack(side=tk.LEFT)
+
 # Add label to show image
 imageLabel = tk.Label(bottomFrame)
 imageLabel.pack(side=tk.BOTTOM)
