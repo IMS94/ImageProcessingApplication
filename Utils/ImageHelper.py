@@ -14,7 +14,7 @@ class ImageHelper:
         print(self.pixels)
 
     def get_photo_image(self):
-        return ImageTk.PhotoImage(self.image);
+        return ImageTk.PhotoImage(self.image)
 
     # height->width, width->height. shape[0]=>height, shape[1]=>width
     def transpose(self):
@@ -34,3 +34,10 @@ class ImageHelper:
             new_image[:, i, :] = self.pixels[:, width - i - 1, :]
         self.pixels = new_image
         self.image = Image.fromarray(np.uint8(new_image))
+
+    def crop(self, xLeft, yLeft, xRight, yRight):
+        if xLeft<xRight and yLeft<yRight:
+            new_image = self.pixels[yLeft:yRight, xLeft:xRight, :]
+            croppedImage = Image.fromarray(np.uint8(new_image))
+            return ImageTk.PhotoImage(croppedImage)
+        return None
