@@ -3,7 +3,7 @@ from tkinter.filedialog import askopenfilename
 from Utils.ImageHelper import ImageHelper
 
 # Image Helper instance to be used through out the application
-imageHelper = False
+imageHelper = None
 
 
 # Load the image from a file picker when the button is clicked
@@ -15,11 +15,20 @@ def load_image():
         imageHelper = ImageHelper(image_name)
         image = imageHelper.get_photo_image()
         set_image(image)
+        update_scales()
+
+
+def update_scales():
+    if imageHelper:
         # Set the ranges of cropping scales
         cropXRight.configure(from_=0, to=imageHelper.width)
+        cropXRight.set(imageHelper.width)
         cropYTop.configure(from_=0, to=imageHelper.height)
+        cropYTop.set(0)
         cropXLeft.configure(from_=0, to=imageHelper.width)
+        cropXLeft.set(0)
         cropYBottom.configure(from_=0, to=imageHelper.height)
+        cropYBottom.set(imageHelper.height)
 
 
 # Rotate the image left
@@ -40,20 +49,34 @@ def vertically_flip():
 # Crop method, which in turns call the crop method of image helper class
 def crop():
     if imageHelper:
-        image = imageHelper.crop(cropParams[0][0].get(), cropParams[0][1].get(), cropParams[1][0].get(),
-                                 cropParams[1][1].get())
-        if image:
-            set_image(image)
+        imageHelper.crop(cropXLeft.get(), cropYTop.get(), cropXRight.get(), cropYBottom.get())
+        image = imageHelper.get_photo_image()
+        set_image(image)
 
 
+def show_histogram():
+    if imageHelper:
+        imageHelper.show_histogram()
+
+
+def adjust_brightness(val):
+    if imageHelper:
+        imageHelper.adjust_brightness(val)
+        image = imageHelper.get_photo_image()
+        set_image(image)
+
+
+# Set the currently shown image
 def set_image(image):
     imageLabel.configure(image=image)
     imageLabel.image = image
 
 
 def show_original():
-    image = imageHelper.get_photo_image()
-    set_image(image)
+    if imageHelper:
+        image = imageHelper.get_original_image()
+        set_image(image)
+        update_scales()
 
 
 window = tk.Tk()
@@ -61,10 +84,11 @@ window = tk.Tk()
 screen_size = window.winfo_screenwidth(), window.winfo_screenheight()
 # Set the geometry of the screen. 100 pixels less from actual size of the screen
 window.geometry(str(screen_size[0] - 200) + "x" + str(screen_size[0] - 200))
+window.grid()
 
 # Frame on the top. This will be used to shw buttons.
 topFrame = tk.Frame(window)
-topFrame.grid()
+topFrame.grid(row=0)
 
 # add load button
 loadButton = tk.Button(topFrame, text="Load Image", command=load_image)
@@ -78,25 +102,32 @@ verticalFlipButton.grid(row=0, column=2)
 
 # The list of lists used to track the values of the sliders
 cropParams = [[tk.DoubleVar(), tk.DoubleVar()], [tk.DoubleVar(), tk.DoubleVar()]]
-cropXLeft = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="X Axis - Left", variable=cropParams[0][0])
+cropXLeft = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="X Axis - Left")
 cropXLeft.grid(row=0, column=3)
-cropYTop = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="Y Axis - Top", variable=cropParams[0][1])
+cropYTop = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="Y Axis - Top")
 cropYTop.grid(row=1, column=3)
-cropXRight = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="X Axis - Right",
-                      variable=cropParams[1][0])
+cropXRight = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="X Axis - Right", )
 cropXRight.grid(row=0, column=4)
-cropYBottom = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="Y Axis - Bottom",
-                       variable=cropParams[1][1])
+cropYBottom = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=0, to=100, label="Y Axis - Bottom", )
 cropYBottom.grid(row=1, column=4)
 
 # Crop Button.
-croptButton = tk.Button(topFrame, text="Crop", command=crop)
-croptButton.grid(row=0, column=5)
+cropButton = tk.Button(topFrame, text="Crop", command=crop)
+cropButton.grid(row=0, column=5)
 showOriginalButton = tk.Button(topFrame, text="Show Original", command=show_original)
 showOriginalButton.grid(row=1, column=5)
 
+# Histogram Button
+histogramButton = tk.Button(topFrame, text="Histogram", command=show_histogram)
+histogramButton.grid(row=0, column=6)
+
+# Adjust brightness and contrast
+adjustBrightness = tk.Scale(topFrame, orient=tk.HORIZONTAL, from_=-100, to=100, label="Brightness",
+                            command=adjust_brightness)
+adjustBrightness.grid(row=0, column=7)
+
 # Add label to show image
 imageLabel = tk.Label(topFrame)
-imageLabel.grid(row=2, column=0, columnspan=6)
+imageLabel.grid(row=2, column=0, columnspan=8)
 
 window.mainloop()
